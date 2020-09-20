@@ -127,3 +127,14 @@ say <string> - Send the string to all players as part of a chat
 fire [0-7] [0-7] - fire at the given position of the opponent
 exit - quit the server
 ```
+
+#### Grading Rubric
+
+The grading will be mainly based on automated tests.  However, a major component of the project is network programming, which is difficult to test in an automated manner, and will require us to run and test your application manually.  Additionally, you will be required to record a demo of the application running in network mode, with a specfic set of commands.
+
+The grading will break down like so:
+
+* 60% automated tests
+* 15% recorded demo
+* 15% manual testing of the network component by instructors
+* 10% code quality and proper synchronization
