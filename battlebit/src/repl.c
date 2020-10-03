@@ -57,6 +57,7 @@ void repl_execute_command(struct char_buff * buffer) {
         } else if(strcmp(command, "show") == 0) {
 
             // work with repl_print_board
+            //repl_print_board(*state, arg1, buffer);
 
         } else if(strcmp(command, "reset") == 0) {
 

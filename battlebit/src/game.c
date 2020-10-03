@@ -53,6 +53,12 @@ unsigned long long int xy_to_bitval(int x, int y) {
     //
     // you will need to use bitwise operators and some math to produce the right
     // value.
+    unsigned long long bitVal;
+    unsigned long long shift = 8*y + x;
+
+    bitVal = 1ull << shift;
+    return bitVal;
+
 }
 
 struct game * game_get_current() {
