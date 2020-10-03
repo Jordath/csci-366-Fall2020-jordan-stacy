@@ -56,7 +56,12 @@ unsigned long long int xy_to_bitval(int x, int y) {
     unsigned long long bitVal;
     unsigned long long shift = 8*y + x;
 
-    bitVal = 1ull << shift;
+    if(x < 0 || x > 7 || y < 0 || y > 7){
+        bitVal = 0;
+    }
+    else {
+        bitVal = 1ull << shift;
+    }
     return bitVal;
 
 }
