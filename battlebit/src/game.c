@@ -81,16 +81,51 @@ int game_load_board(struct game *game, int player, char * spec) {
     // slot and return 1
     //
     // if it is invalid, you should return -1
+
+    // Ex. Spec: C00b02D23S47p71
+    // Using xy_to_bitval(int x, int y)
+
+
 }
 
 int add_ship_horizontal(player_info *player, int x, int y, int length) {
     // implement this as part of Step 2
     // returns 1 if the ship can be added, -1 if not
     // hint: this can be defined recursively
+
+    // all capital values are horizontal
+    // to implement: [C, B, D, S, P]
+    // Carrier=5, Battleship=4, Destroyer=3, Submarine=2, PatrolBoat=2
+    if(x < 0 || x > 7 || y < 0 || y > 7){
+        return -1;
+    }
+    if(length < 2 || length > 5){
+        return -1;
+    }
+    if((x + length) > 7){
+        return - 1;
+    }
+    else{
+        return 1;
+    }
+
 }
 
 int add_ship_vertical(player_info *player, int x, int y, int length) {
     // implement this as part of Step 2
     // returns 1 if the ship can be added, -1 if not
     // hint: this can be defined recursively
+
+    if(x < 0 || x > 7 || y < 0 || y > 7){
+        return -1;
+    }
+    if(length < 2 || length > 5){
+        return -1;
+    }
+    if((y + length) > 7){
+        return - 1;
+    }
+    else{
+        return 1;
+    }
 }
