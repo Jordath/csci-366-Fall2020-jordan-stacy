@@ -7,6 +7,6 @@ find_max:
         ;; you will need to loop through the array and
         ;; compare each value with rax to determine if it is greater
         ;; after the comparison, decrement the count, bump the
-        ;; array pointer by 4 (int = 32 bits = 4 bytes)
+        ;; array pointer by 8 (long long = 64 bits = 8 bytes)
         ;; and if the counter is greater than zero, loop
         ret
