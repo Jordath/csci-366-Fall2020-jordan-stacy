@@ -85,6 +85,41 @@ int game_load_board(struct game *game, int player, char * spec) {
     // Ex. Spec: C00b02D23S47p71
     // Using xy_to_bitval(int x, int y)
 
+    int specLen = 0;
+
+    for(specLen = 0; spec[specLen] != '\0'; ++specLen); // getting the length of the spec
+
+    if(spec == NULL){ // If the spec has nothing in it, return -1
+        return -1;
+    }
+    if(specLen != 15){ // If 15 characters are not in the spec, return -1
+        return -1;
+    }
+
+    for (int i = 0; i < 14; i += 3) {
+        int first = (int)spec[i+1];
+        int second = (int)spec[i+2];
+        if((spec[i] != 'c') && (spec[i] != 'C') && (spec[i] != 'B') && (spec[i] != 'b') && (spec[i] != 'D') && (spec[i] != 'd') && (spec[i] != 'S') && (spec[i] != 's') && (spec[i] != 'p') && (spec[i] != 'P')){
+            // checking to see if the letters the player typed in are legal. (I have a feeling this does not work)
+            return -1;
+        }
+
+        else if(((first < 0) || (first > 7))  && ((second < 0) || (second > 7))){
+            // convert the two characters in front of the ship type into ints to verify I am not getting a bad input from the user
+            //
+            return -1;
+        }
+
+        // My last idea is to loop through all of the ship characters and take the character of the ship
+        // If there is a 'c' and a 'C', return -1
+        // not super sure how to implement this yet
+
+        // using xy_to_bitval, check the x and y coordinates of each ship to verify they are not overlapping
+        // xy_to_bitval(first,second)
+        // not super sure how to implement this yet
+
+    }
+
 
 }
 
@@ -96,13 +131,16 @@ int add_ship_horizontal(player_info *player, int x, int y, int length) {
     // all capital values are horizontal
     // to implement: [C, B, D, S, P]
     // Carrier=5, Battleship=4, Destroyer=3, Submarine=2, PatrolBoat=2
-    if(x < 0 || x > 7 || y < 0 || y > 7){
+    if(x < 0 || x > 7 || y < 0 || y > 7){ // if x or y is in an illegal coordinate, return -1
         return -1;
     }
-    if(length < 2 || length > 5){
+    if(length == 0 && x <= 7 && x >= 0 && y <= 7 && y >= 0){
+        return 1;
+    }
+    else if(length < 2 || length > 5){ // if the length of the ship is illegal, return -1
         return -1;
     }
-    if((x + length) > 7){
+    if((x + length) > 7){ // if the ship goes out of bounds, return -1
         return - 1;
     }
     else{
@@ -116,13 +154,13 @@ int add_ship_vertical(player_info *player, int x, int y, int length) {
     // returns 1 if the ship can be added, -1 if not
     // hint: this can be defined recursively
 
-    if(x < 0 || x > 7 || y < 0 || y > 7){
+    if(x < 0 || x > 7 || y < 0 || y > 7){ // if x or y is in an illegal coordinate, return -1
         return -1;
     }
-    if(length < 2 || length > 5){
+    if(length < 2 || length > 5){ // if the length of the ship is illegal, return -1
         return -1;
     }
-    if((y + length) > 7){
+    if((y + length) > 7){ // if the ship goes out of bounds, return -1
         return - 1;
     }
     else{
