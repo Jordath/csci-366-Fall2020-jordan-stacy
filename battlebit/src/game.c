@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "game.h"
-
+#include <string.h>
 // STEP 10 - Synchronization: the GAME structure will be accessed by both players interacting
 // asynchronously with the server.  Therefore the data must be protected to avoid race conditions.
 // Add the appropriate synchronization needed to ensure a clean battle.
@@ -85,6 +85,9 @@ int game_load_board(struct game *game, int player, char * spec) {
     // Ex. Spec: C00b02D23S47p71
     // Using xy_to_bitval(int x, int y)
 
+    char shipArray[5];
+    int shipArrayCount = 0;
+
     int specLen = 0;
 
     for(specLen = 0; spec[specLen] != '\0'; ++specLen); // getting the length of the spec
@@ -97,29 +100,91 @@ int game_load_board(struct game *game, int player, char * spec) {
     }
 
     for (int i = 0; i < 14; i += 3) {
-        int first = (int)spec[i+1];
-        int second = (int)spec[i+2];
-        if((spec[i] != 'c') && (spec[i] != 'C') && (spec[i] != 'B') && (spec[i] != 'b') && (spec[i] != 'D') && (spec[i] != 'd') && (spec[i] != 'S') && (spec[i] != 's') && (spec[i] != 'p') && (spec[i] != 'P')){
-            // checking to see if the letters the player typed in are legal. (I have a feeling this does not work)
-            return -1;
-        }
+        char x = spec[i + 1];
+        char y = spec[i + 2];
+        int iX = x - '0';
+        int iY = y - '0';
+        char shipLetter = spec[i];
+        shipArray[shipArrayCount] = spec[i];
+        shipArrayCount++;
+        int outBoundsCheckX = 0;
+        int outBoundsCheckY = 0;
+        int shipLen = 0;
 
-        else if(((first < 0) || (first > 7))  && ((second < 0) || (second > 7))){
+        if(((iX < 0) || (iX > 7))  && ((iY < 0) || (iY > 7))){
             // convert the two characters in front of the ship type into ints to verify I am not getting a bad input from the user
             //
             return -1;
         }
 
-        // My last idea is to loop through all of the ship characters and take the character of the ship
-        // If there is a 'c' and a 'C', return -1
-        // not super sure how to implement this yet
+        if((shipLetter != 'c') && (shipLetter != 'C') && (shipLetter != 'B') && (shipLetter != 'b') && (shipLetter != 'D') && (shipLetter != 'd') && (shipLetter != 'S') && (shipLetter != 's') && (shipLetter != 'p') && (shipLetter != 'P')){
+            // checking to see if the letters the player typed in are legal. (I have a feeling this does not work)
+            return -1;
+        }
+        // gets the length of the ship and checks to see if shipLen + x or y is out of bounds
+            if(shipLetter == 'C' || shipLetter == 'c'){
+                shipLen = 5;
+            }
+            else if(shipLetter == 'B' || shipLetter == 'b'){
+                shipLen = 4;
+            }
+            else if(shipLetter == 'D' || shipLetter == 'S' || shipLetter == 'd' || shipLetter == 's'){
+                shipLen = 3;
+            }
+            else if(shipLetter == 'P' || shipLetter == 'p') {
+                shipLen = 2;
+            }
+
+            // If letter is uppercase, add the ship horizontally into player.ships (flip their bits to 1)
+            if(shipLetter - 96 < 0){
+                outBoundsCheckX = iX + shipLen;
+                for(int i = 0; i < shipLen; i++) {
+                    if(xy_to_bitval(iX + i,iY) & game->players[player].ships){
+                        return -1;
+                    } else {
+                        add_ship_horizontal(&game->players[player], iX + i, iY, shipLen);
+                    }
+                }
+            }
+            // If letter is lowercase, add the ship vertically into player.ships (flip their bits to 1)
+            else if(shipLetter - 96 > 0){
+                outBoundsCheckY = iY + shipLen;
+                for(int i = 0; i < shipLen; i++) {
+                    if(xy_to_bitval(iX,iY + i) & game->players[player].ships){
+                        return -1;
+                    } else {
+                        add_ship_vertical(&game->players[player],iX,iY + i, shipLen);
+                    }
+                }
+            }
+
+            if(outBoundsCheckX > 7){
+                return -1;
+            }
+            if(outBoundsCheckY > 7){
+                return -1;
+            }
+
+
 
         // using xy_to_bitval, check the x and y coordinates of each ship to verify they are not overlapping
         // xy_to_bitval(first,second)
         // not super sure how to implement this yet
-
     }
 
+    // loop that uses the ascii value of the ship to find out if multiple of the same ship has occurred or not.
+    for(int i = 0; i < 5; i++){
+        char shipArrayI = shipArray[i];
+        for(int j = 0; j < 5; j++){
+            char shipArrayJ = shipArray[j];
+            if((shipArrayI - 32 == shipArrayJ) || (shipArrayI + 32 == shipArrayJ)){
+                return -1;
+}
+        }
+    }
+
+
+    return 1;
 
 }
 
@@ -131,12 +196,14 @@ int add_ship_horizontal(player_info *player, int x, int y, int length) {
     // all capital values are horizontal
     // to implement: [C, B, D, S, P]
     // Carrier=5, Battleship=4, Destroyer=3, Submarine=2, PatrolBoat=2
+
+    if(length == 0){
+        return 1;
+    }
     if(x < 0 || x > 7 || y < 0 || y > 7){ // if x or y is in an illegal coordinate, return -1
         return -1;
     }
-    if(length == 0 && x <= 7 && x >= 0 && y <= 7 && y >= 0){
-        return 1;
-    }
+
     else if(length < 2 || length > 5){ // if the length of the ship is illegal, return -1
         return -1;
     }
@@ -144,6 +211,7 @@ int add_ship_horizontal(player_info *player, int x, int y, int length) {
         return - 1;
     }
     else{
+        player->ships = player->ships & xy_to_bitval(x,y);
         return 1;
     }
 
@@ -153,6 +221,10 @@ int add_ship_vertical(player_info *player, int x, int y, int length) {
     // implement this as part of Step 2
     // returns 1 if the ship can be added, -1 if not
     // hint: this can be defined recursively
+
+    if(length == 0){
+        return 1;
+    }
 
     if(x < 0 || x > 7 || y < 0 || y > 7){ // if x or y is in an illegal coordinate, return -1
         return -1;
@@ -164,6 +236,8 @@ int add_ship_vertical(player_info *player, int x, int y, int length) {
         return - 1;
     }
     else{
+        //player->ships & xy_to_bitval(x,y);
+        player->ships = player->ships & xy_to_bitval(x, y);
         return 1;
     }
 }
