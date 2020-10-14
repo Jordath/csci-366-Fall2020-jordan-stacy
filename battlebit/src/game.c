@@ -237,6 +237,12 @@ int add_ship_vertical(player_info *player, int x, int y, int length) {
     }
     else{
         //player->ships & xy_to_bitval(x,y);
+        /*
+        for(int i = length; i > 0; i--){
+            add_ship_vertical(player, x, y + i, i);
+            player->ships = player->ships & xy_to_bitval(x, y);
+        }
+        */
         player->ships = player->ships & xy_to_bitval(x, y);
         return 1;
     }
