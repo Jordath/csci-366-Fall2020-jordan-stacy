@@ -85,6 +85,10 @@ int game_load_board(struct game *game, int player, char * spec) {
     // Ex. Spec: C00b02D23S47p71
     // Using xy_to_bitval(int x, int y)
 
+    if(spec == NULL){ // If the spec has nothing in it, return -1
+        return -1;
+    }
+
     char shipArray[5];
     int shipArrayCount = 0;
 
@@ -92,9 +96,7 @@ int game_load_board(struct game *game, int player, char * spec) {
 
     for(specLen = 0; spec[specLen] != '\0'; ++specLen); // getting the length of the spec
 
-    if(spec == NULL){ // If the spec has nothing in it, return -1
-        return -1;
-    }
+
     if(specLen != 15){ // If 15 characters are not in the spec, return -1
         return -1;
     }
@@ -138,22 +140,29 @@ int game_load_board(struct game *game, int player, char * spec) {
             // If letter is uppercase, add the ship horizontally into player.ships (flip their bits to 1)
             if(shipLetter - 96 < 0){
                 outBoundsCheckX = iX + shipLen;
-                for(int i = 0; i < shipLen; i++) {
-                    if(xy_to_bitval(iX + i,iY) & game->players[player].ships){
+                if(xy_to_bitval(iX,iY) & game->players[player].ships){
+                    game->players[player].ships = 0;
+                    return -1;
+                } else {
+                    add_ship_horizontal(&game->players[player], iX, iY, shipLen);
+                    if(game->players[player].ships == 0){
                         return -1;
-                    } else {
-                        add_ship_horizontal(&game->players[player], iX + i, iY, shipLen);
                     }
                 }
+
+
             }
             // If letter is lowercase, add the ship vertically into player.ships (flip their bits to 1)
             else if(shipLetter - 96 > 0){
                 outBoundsCheckY = iY + shipLen;
-                for(int i = 0; i < shipLen; i++) {
-                    if(xy_to_bitval(iX,iY + i) & game->players[player].ships){
+
+                if(xy_to_bitval(iX,iY) & game->players[player].ships){
+                    game->players[player].ships = 0;
+                    return -1;
+                } else {
+                    add_ship_vertical(&game->players[player],iX,iY, shipLen);
+                    if(game->players[player].ships == 0){
                         return -1;
-                    } else {
-                        add_ship_vertical(&game->players[player],iX,iY + i, shipLen);
                     }
                 }
             }
@@ -197,22 +206,29 @@ int add_ship_horizontal(player_info *player, int x, int y, int length) {
     // to implement: [C, B, D, S, P]
     // Carrier=5, Battleship=4, Destroyer=3, Submarine=2, PatrolBoat=2
 
-    if(length == 0){
-        return 1;
-    }
-    if(x < 0 || x > 7 || y < 0 || y > 7){ // if x or y is in an illegal coordinate, return -1
+    if(x < 0 || x > 8 || y < 0 || y > 8){ // if x or y is in an illegal coordinate, return -1
         return -1;
     }
 
-    else if(length < 2 || length > 5){ // if the length of the ship is illegal, return -1
+    else if(length > 5){ // if the length of the ship is illegal, return -1
         return -1;
     }
     if((x + length) > 7){ // if the ship goes out of bounds, return -1
         return - 1;
     }
     else{
-        player->ships = player->ships & xy_to_bitval(x,y);
-        return 1;
+        if(length == 0){
+            return 1;
+        }
+        else{
+            player->ships = player->ships | xy_to_bitval(x, y);
+            if(xy_to_bitval(x + 1, y) & player->ships){
+                player->ships = 0;
+                return -1;
+            } else {
+                return add_ship_horizontal(player, x + 1, y, length - 1);
+            }
+        }
     }
 
 }
@@ -222,28 +238,33 @@ int add_ship_vertical(player_info *player, int x, int y, int length) {
     // returns 1 if the ship can be added, -1 if not
     // hint: this can be defined recursively
 
-    if(length == 0){
-        return 1;
+ //   if(length == 0){
+   //     return 1;
+   // }
+    if((y + length) >= 8 && y != 8){ // if the ship goes out of bounds, return -1
+        return -1;
     }
 
-    if(x < 0 || x > 7 || y < 0 || y > 7){ // if x or y is in an illegal coordinate, return -1
+    if(x < 0 || x > 8 || y < 0 || y > 8){ // if x or y is in an illegal coordinate, return -1
         return -1;
     }
-    if(length < 2 || length > 5){ // if the length of the ship is illegal, return -1
+    if(length > 5){ // if the length of the ship is illegal, return -1
         return -1;
-    }
-    if((y + length) > 7){ // if the ship goes out of bounds, return -1
-        return - 1;
     }
     else{
-        //player->ships & xy_to_bitval(x,y);
-        /*
-        for(int i = length; i > 0; i--){
-            add_ship_vertical(player, x, y + i, i);
-            player->ships = player->ships & xy_to_bitval(x, y);
+        if(length == 0){
+            return 1;
         }
-        */
-        player->ships = player->ships & xy_to_bitval(x, y);
-        return 1;
+        else{
+            player->ships = player->ships | xy_to_bitval(x, y);
+            if(xy_to_bitval(x, y + 1) & player->ships){
+                player->ships = 0;
+                return -1;
+            }
+            else {
+                return add_ship_vertical(player, x, y + 1, length - 1);
+            }
+            //length--;
+        }
     }
 }
