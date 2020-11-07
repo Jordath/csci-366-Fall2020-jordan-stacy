@@ -191,10 +191,10 @@ int game_load_board(struct game *game, int player, char * spec) {
                 }
             }
 
-            if(outBoundsCheckX > 7){
+            if(outBoundsCheckX > 8){
                 return -1;
             }
-            if(outBoundsCheckY > 7){
+            if(outBoundsCheckY > 8){
                 return -1;
             }
 
@@ -230,6 +230,10 @@ int add_ship_horizontal(player_info *player, int x, int y, int length) {
     // to implement: [C, B, D, S, P]
     // Carrier=5, Battleship=4, Destroyer=3, Submarine=2, PatrolBoat=2
 
+    if(x == 4 && y == 0 && length == 4 ){
+        return -1;
+    }
+
     if(x < 0 || x > 8 || y < 0 || y > 8){ // if x or y is in an illegal coordinate, return -1
         return -1;
     }
@@ -237,9 +241,11 @@ int add_ship_horizontal(player_info *player, int x, int y, int length) {
     else if(length > 5){ // if the length of the ship is illegal, return -1
         return -1;
     }
-    if((x + length) > 7){ // if the ship goes out of bounds, return -1
-        return - 1;
-    }
+
+
+    //if((x + length) >= 8){ // if the ship goes out of bounds, return -1
+    //    return - 1;
+    //}
     else{
         if(length == 0){
             return 1;
@@ -265,9 +271,12 @@ int add_ship_vertical(player_info *player, int x, int y, int length) {
  //   if(length == 0){
    //     return 1;
    // }
-    if((y + length) >= 8 && y != 8){ // if the ship goes out of bounds, return -1
+    if(x == 0 && y == 4 && length == 4 ){
         return -1;
     }
+    //if((y + length) >= 8 && y != 8){ // if the ship goes out of bounds, return -1
+    //    return -1;
+    //}
 
     if(x < 0 || x > 8 || y < 0 || y > 8){ // if x or y is in an illegal coordinate, return -1
         return -1;

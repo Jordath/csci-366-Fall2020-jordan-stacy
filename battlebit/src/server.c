@@ -142,8 +142,8 @@ int run_server() {
         while ((client_socket_fd = accept(server_socket_fd, // where it SIGSEGVs
                                           (struct sockaddr *) &client,
                                           &size_from_connect)) > 0) {
-            pthread_create(SERVER->player_threads[0], NULL, handle_client_connect(&SERVER->player_sockets[0]), NULL);
-            pthread_create(SERVER->player_threads[1], NULL, handle_client_connect(SERVER->player_sockets[1]), NULL);
+            pthread_create(&SERVER->player_threads[0], NULL, handle_client_connect(&SERVER->player_sockets[0]), NULL);
+            pthread_create(&SERVER->player_threads[1], NULL, handle_client_connect(SERVER->player_sockets[1]), NULL);
 
             }
         }

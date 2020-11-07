@@ -56,8 +56,13 @@ void repl_execute_command(struct char_buff * buffer) {
             server_start();
         } else if(strcmp(command, "show") == 0) {
 
+            struct game * gameon = game_get_current();
+            struct char_buff *buffer1 = cb_create(2000);
             // work with repl_print_board
-            //repl_print_board(*state, arg1, buffer);
+            int player = atoi(arg1);
+            repl_print_board(gameon, player, buffer1);
+            cb_print(buffer1);
+            free(buffer1);
 
         } else if(strcmp(command, "reset") == 0) {
 
@@ -66,10 +71,19 @@ void repl_execute_command(struct char_buff * buffer) {
         } else if (strcmp(command, "load") == 0) {
 
             // work with game_load_board
+            struct char_buff *buffer1 = cb_create(2000);
+            int player = atoi(arg1);
+            game_load_board(game_get_current(), player, arg2);
+            free(buffer1);
 
         } else if (strcmp(command, "fire") == 0) {
 
             // work with game_fire
+            int player, x, y;
+            player = atoi(arg1);
+            x = atoi(arg2);
+            y = atoi(arg3);
+            game_fire(game_get_current(),player, x ,y);
 
         } else if (strcmp(command, "nasm") == 0) {
             nasm_hello_world();
