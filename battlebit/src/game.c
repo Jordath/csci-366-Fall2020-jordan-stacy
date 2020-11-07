@@ -41,8 +41,8 @@ int game_fire(game *game, int player, int x, int y) {
     //  - you You will need to see if the shot hits a ship in the opponents ships value.  If so, record a hit in the
     //    current players hits field
     if((game->players[player].shots & xy_to_bitval(x,y)) == (game->players[opponent].ships & xy_to_bitval(x,y)) ){
-        game->players[player].hits = game->players[player].hits | xy_to_bitval(x,y);
-        game->players[opponent].ships = game->players[opponent].ships & ~xy_to_bitval(x,y);
+        game->players[player].hits = game->players[player].hits |= xy_to_bitval(x,y);
+        game->players[opponent].ships = game->players[opponent].ships &= ~xy_to_bitval(x,y);
 
         if(game->players[opponent].ships == 0){
             if(player == 0) {
