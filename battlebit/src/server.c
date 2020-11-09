@@ -39,8 +39,7 @@ int handle_client_connect(int player) {
     // This function will end up looking a lot like repl_execute_command, except you will
     // be working against network sockets rather than standard out, and you will need
     // to coordinate turns via the game::status field.
-    int client_socket_fd;
-    client_socket_fd = player;
+    int client_socket_fd = SERVER->player_sockets[player];
 
     char raw_buffer[2000];
     char_buff *input_buffer = cb_create(2000);
@@ -138,13 +137,18 @@ int run_server() {
         struct sockaddr_in client;
         socklen_t size_from_connect;
         int client_socket_fd;
+        int player = 0;
 
-        while ((client_socket_fd = accept(server_socket_fd, // where it SIGSEGVs
+        while ((client_socket_fd = accept(server_socket_fd,
                                           (struct sockaddr *) &client,
                                           &size_from_connect)) > 0) {
-            pthread_create(&SERVER->player_threads[0], NULL, handle_client_connect(&SERVER->player_sockets[0]), NULL);
-            pthread_create(&SERVER->player_threads[1], NULL, handle_client_connect(SERVER->player_sockets[1]), NULL);
-
+            SERVER->player_sockets[player] = client_socket_fd;
+            pthread_create(&SERVER->server_thread, NULL,
+                                                            (void *) handle_client_connect, &player);
+            player++;
+            if(player > 1){
+                break;
+            }
             }
         }
 
@@ -154,9 +158,7 @@ int server_start() {
     // STEP 7 - using a pthread, run the run_server() function asynchronously, so you can still
     // interact with the game via the command line REPL
     init_server();
-    pthread_t tid1;
-    pthread_create(&tid1, NULL, run_server(), NULL);
-
+    pthread_create(&SERVER->server_thread, NULL, (void *) run_server, NULL);
 
 
 }
