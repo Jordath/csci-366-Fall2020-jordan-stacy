@@ -139,7 +139,7 @@ int run_server() {
         int client_socket_fd;
         int player = 0;
 
-        while ((client_socket_fd = accept(server_socket_fd,
+        while ((client_socket_fd = accept(server_socket_fd, // where it SIGSEGV's
                                           (struct sockaddr *) &client,
                                           &size_from_connect)) > 0) {
             SERVER->player_sockets[player] = client_socket_fd;
