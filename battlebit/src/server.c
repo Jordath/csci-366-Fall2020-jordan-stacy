@@ -42,9 +42,6 @@ int handle_client_connect(int player) {
     // to coordinate turns via the game::status field.
     int client_socket_fd = SERVER->player_sockets[player];
     int opponent = (player + 1) % 2;
-    if(player == 0){
-        game_init();
-    }
 
     char raw_buffer[2000];
     char_buff *input_buffer = cb_create(2000);
@@ -92,7 +89,33 @@ int handle_client_connect(int player) {
                     }
                     int x = atoi(arg1);
                     int y = atoi(arg2);
-                    game_fire(game_get_current(), player, x, y);
+                    //game_fire(game_get_current(), player, x, y);
+                    char_buff *fireBuffer = cb_create(2000);
+                    cb_append(fireBuffer, "Player ");
+                    cb_append_int(fireBuffer, player);
+                    cb_append(fireBuffer, " fires at ");
+                    cb_append_int(fireBuffer, x);
+                    cb_append(fireBuffer, " ");
+                    cb_append_int(fireBuffer, y);
+                    cb_append(fireBuffer, " - ");
+                    if(game_fire(game_get_current(), player, x, y) == 1){
+                        cb_append(fireBuffer,"HIT");
+                    }
+                    else if(game_fire(game_get_current(), player, x, y) == 0){
+                        cb_append(fireBuffer,"MISS");
+                    }
+
+                    if(game_get_current() == PLAYER_0_WINS){
+                        cb_append(output_buffer," - PLAYER 0 WINS!");
+                    }
+                    else if(game_get_current() == PLAYER_1_WINS){
+                        cb_append(output_buffer, " - PLAYER 1 WINS!");
+                    }
+
+                    server_broadcast(fireBuffer);
+                    free(fireBuffer);
+
+
 
                 } else if (strcmp(command, "load") == 0){
 
@@ -114,20 +137,13 @@ int handle_client_connect(int player) {
                     cb_append(sayBuffer, arg2);
                     cb_append(sayBuffer, "\n");
                     server_broadcast(sayBuffer);
+                    free(sayBuffer);
                 }
                 else if (command != NULL) {
                     // create output
                     cb_append(output_buffer, "Command was : ");
                     cb_append(output_buffer, command);
                     // output the command
-                    cb_write(client_socket_fd, output_buffer);
-                }
-                if(game_get_current() == PLAYER_0_TURN){
-                    cb_append(output_buffer, "Player 0 Turn\n");
-                    cb_write(client_socket_fd, output_buffer);
-                }
-                else if(game_get_current() == PLAYER_1_TURN){
-                    cb_append(output_buffer, "Player 1 Turn\n");
                     cb_write(client_socket_fd, output_buffer);
                 }
             }
