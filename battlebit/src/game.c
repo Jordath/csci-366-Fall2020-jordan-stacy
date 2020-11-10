@@ -44,6 +44,13 @@ int game_fire(game *game, int player, int x, int y) {
         game->players[player].hits = game->players[player].hits |= xy_to_bitval(x,y);
         game->players[opponent].ships = game->players[opponent].ships &= ~xy_to_bitval(x,y);
 
+        if(player == 0){
+            game->status = PLAYER_1_TURN;
+        }
+        else if(player == 1){
+            game->status = PLAYER_0_TURN;
+        }
+
         if(game->players[opponent].ships == 0){
             if(player == 0) {
                 game->status = PLAYER_0_WINS;
@@ -52,7 +59,6 @@ int game_fire(game *game, int player, int x, int y) {
                 game->status = PLAYER_1_WINS;
             }
         }
-
         return 1;
 
     }
@@ -198,11 +204,13 @@ int game_load_board(struct game *game, int player, char * spec) {
                 return -1;
             }
 
-
-
-        // using xy_to_bitval, check the x and y coordinates of each ship to verify they are not overlapping
-        // xy_to_bitval(first,second)
-        // not super sure how to implement this yet
+            if(player == 0){
+                game->status = CREATED;
+            }
+            else if (player == 1){
+                game->status = INITIALIZED;
+                game->status = PLAYER_0_TURN;
+            }
     }
 
     // loop that uses the ascii value of the ship to find out if multiple of the same ship has occurred or not.
