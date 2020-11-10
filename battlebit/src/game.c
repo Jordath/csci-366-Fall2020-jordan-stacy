@@ -10,8 +10,16 @@
 // asynchronously with the server.  Therefore the data must be protected to avoid race conditions.
 // Add the appropriate synchronization needed to ensure a clean battle.
 
+/*
+pthread_mutex_t lock;
+pthread_mutex_init(&lock, NULL);
+pthread_mutex_lock(&lock);
+*/
 static game * GAME = NULL;
-
+/*
+pthread_mutex_unlock(&lock);
+pthread_mutex_destroy(&lock);
+*/
 void game_init() {
     if (GAME) {
         free(GAME);

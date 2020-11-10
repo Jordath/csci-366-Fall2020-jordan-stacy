@@ -42,13 +42,16 @@ int handle_client_connect(int player) {
     // to coordinate turns via the game::status field.
     int client_socket_fd = SERVER->player_sockets[player];
     int opponent = (player + 1) % 2;
+    if(player == 1){
+        game_get_current()->status = INITIALIZED;
+    }
 
     char raw_buffer[2000];
     char_buff *input_buffer = cb_create(2000);
     char_buff *output_buffer = cb_create(2000);
 
     int read_size;
-    cb_append(output_buffer,"Welcome to the server Player ");
+    cb_append(output_buffer,"Welcome to the battleBit server Player ");
     cb_append_int(output_buffer, player);
     cb_append(output_buffer, "\nbattleBit (? for help) > ");
     cb_write(client_socket_fd, output_buffer);
@@ -75,23 +78,29 @@ int handle_client_connect(int player) {
                     cb_append(output_buffer, "show - shows the board\n");
                     cb_append(output_buffer, "fire [0-7] [0-7] - fires at the given position\n");
                     cb_append(output_buffer, "say <string> - Send the string to all players as part of a chat\n");
-                    cb_append(output_buffer, "exit");
+                    cb_append(output_buffer, "exit - quit the server");
 
                     // output the message
                     cb_write(client_socket_fd, output_buffer);
                 } else if (strcmp(command, "quit") == 0) {
                     close(client_socket_fd);
 
-                } else if (strcmp(command, "fire") == 0) {
-                    if(game_get_current() == CREATED){
+                } else if ((strcmp(command, "fire") == 0) && (game_get_current()->status) == CREATED){
                         cb_append(output_buffer, "Game Has Not Begun!");
-                        break;
-                    }
+                        cb_write(client_socket_fd, output_buffer);
+                } else if((strcmp(command, "fire") == 0) && (player == 0) && (game_get_current()->status == PLAYER_1_TURN) ){
+                    cb_append(output_buffer, "Player 1 Turn");
+                    cb_write(client_socket_fd, output_buffer);
+                } else if((strcmp(command, "fire") == 0) && (player == 1) && (game_get_current()->status == PLAYER_0_TURN) ){
+                    cb_append(output_buffer, "Player 0 Turn");
+                    cb_write(client_socket_fd, output_buffer);
+                }
+                else if (strcmp(command, "fire") == 0) {
                     int x = atoi(arg1);
                     int y = atoi(arg2);
                     //game_fire(game_get_current(), player, x, y);
                     char_buff *fireBuffer = cb_create(2000);
-                    cb_append(fireBuffer, "Player ");
+                    cb_append(fireBuffer, "\nPlayer ");
                     cb_append_int(fireBuffer, player);
                     cb_append(fireBuffer, " fires at ");
                     cb_append_int(fireBuffer, x);
@@ -105,23 +114,45 @@ int handle_client_connect(int player) {
                         cb_append(fireBuffer,"MISS");
                     }
 
-                    if(game_get_current() == PLAYER_0_WINS){
-                        cb_append(output_buffer," - PLAYER 0 WINS!");
+                    if(game_get_current()->players[opponent].ships == 0 && player == 0){
+                        game_get_current()->status = PLAYER_0_WINS;
+                        cb_append(fireBuffer," - PLAYER 0 WINS!");
                     }
-                    else if(game_get_current() == PLAYER_1_WINS){
-                        cb_append(output_buffer, " - PLAYER 1 WINS!");
+                    else if(game_get_current()->players[opponent].ships == 0 && player == 1){
+                        game_get_current()->status = PLAYER_1_WINS;
+                        cb_append(fireBuffer, " - PLAYER 1 WINS!");
                     }
 
+                    if(game_get_current()->status != PLAYER_1_WINS && game_get_current()->status != PLAYER_0_WINS) {
+                        if (player == 0) {
+                            game_get_current()->status = PLAYER_1_TURN;
+                            cb_append(fireBuffer, "\nPlayer 1 Turn");
+                        } else if (player == 1) {
+                            game_get_current()->status = PLAYER_0_TURN;
+                            cb_append(fireBuffer, "\nPlayer 0 Turn");
+                        }
+                    }
+                    cb_append(fireBuffer, "\r");
                     server_broadcast(fireBuffer);
                     free(fireBuffer);
 
 
 
-                } else if (strcmp(command, "load") == 0){
+                } else if ((strcmp(command, "load") == 0) && (game_get_current()->status == CREATED) && (player == 0)){
+                    cb_append(output_buffer,"Waiting on Player 1");
+                    cb_write(client_socket_fd, output_buffer);
+                }
+                else if (strcmp(command, "load") == 0){
 
                     game_load_board(game_get_current(), player, arg1);
+                    if(player == 1){
+                        cb_append(output_buffer, "All Player Boards Loaded\n");
+                        cb_append(output_buffer, "Player 0 Turn");
+                        game_get_current()->status = PLAYER_0_TURN;
+                        server_broadcast(output_buffer);
+                    }
 
-                } else if (strcmp(command, "show") == 0){
+                }else if (strcmp(command, "show") == 0){
                     char_buff *boardBuf = cb_create(2000);
                     repl_print_board(game_get_current(), player, boardBuf);
                     cb_write(client_socket_fd, boardBuf);
@@ -129,7 +160,7 @@ int handle_client_connect(int player) {
                     free(boardBuf);
                 } else if (strcmp(command, "say") == 0){
                     char_buff *sayBuffer = cb_create(2000);
-                    cb_append(sayBuffer, "Player ");
+                    cb_append(sayBuffer, "\nPlayer ");
                     cb_append_int(sayBuffer, player);
                     cb_append(sayBuffer, " says: ");
                     cb_append(sayBuffer, arg1);
