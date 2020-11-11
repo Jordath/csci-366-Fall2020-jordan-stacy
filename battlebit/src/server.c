@@ -84,21 +84,24 @@ int handle_client_connect(int player) {
                     cb_write(client_socket_fd, output_buffer);
                 } else if (strcmp(command, "quit") == 0) {
                     close(client_socket_fd);
-
-                } else if ((strcmp(command, "fire") == 0) && (game_get_current()->status) == CREATED){
+                }
+                // If Player 0 tries to fire before Player 1 has created a board:
+                else if ((strcmp(command, "fire") == 0) && (game_get_current()->status) == CREATED){
                         cb_append(output_buffer, "Game Has Not Begun!");
                         cb_write(client_socket_fd, output_buffer);
-                } else if((strcmp(command, "fire") == 0) && (player == 0) && (game_get_current()->status == PLAYER_1_TURN) ){
+                }
+                // Taking care of if either player tries to shoot when it is not their turn
+                else if((strcmp(command, "fire") == 0) && (player == 0) && (game_get_current()->status == PLAYER_1_TURN) ){
                     cb_append(output_buffer, "Player 1 Turn");
                     cb_write(client_socket_fd, output_buffer);
                 } else if((strcmp(command, "fire") == 0) && (player == 1) && (game_get_current()->status == PLAYER_0_TURN) ){
                     cb_append(output_buffer, "Player 0 Turn");
                     cb_write(client_socket_fd, output_buffer);
                 }
+                // Fire
                 else if (strcmp(command, "fire") == 0) {
                     int x = atoi(arg1);
                     int y = atoi(arg2);
-                    //game_fire(game_get_current(), player, x, y);
                     char_buff *fireBuffer = cb_create(2000);
                     cb_append(fireBuffer, "\nPlayer ");
                     cb_append_int(fireBuffer, player);
@@ -107,6 +110,7 @@ int handle_client_connect(int player) {
                     cb_append(fireBuffer, " ");
                     cb_append_int(fireBuffer, y);
                     cb_append(fireBuffer, " - ");
+                    // returning 1 is a HIT and a 0 is a MISS
                     if(game_fire(game_get_current(), player, x, y) == 1){
                         cb_append(fireBuffer,"HIT");
                     }
@@ -114,6 +118,7 @@ int handle_client_connect(int player) {
                         cb_append(fireBuffer,"MISS");
                     }
 
+                    // If either player runs out of ships
                     if(game_get_current()->players[opponent].ships == 0 && player == 0){
                         game_get_current()->status = PLAYER_0_WINS;
                         cb_append(fireBuffer," - PLAYER 0 WINS!");
@@ -123,6 +128,7 @@ int handle_client_connect(int player) {
                         cb_append(fireBuffer, " - PLAYER 1 WINS!");
                     }
 
+                    // Keep alternating turns if both players still have ships left
                     if(game_get_current()->status != PLAYER_1_WINS && game_get_current()->status != PLAYER_0_WINS) {
                         if (player == 0) {
                             game_get_current()->status = PLAYER_1_TURN;
@@ -135,15 +141,14 @@ int handle_client_connect(int player) {
                     cb_append(fireBuffer, "\r");
                     server_broadcast(fireBuffer);
                     free(fireBuffer);
-
-
-
-                } else if ((strcmp(command, "load") == 0) && (game_get_current()->status == CREATED) && (player == 0)){
+                }
+                // If player 1 hasn't signed into their socket, prevent player 0 from loading a board
+                else if ((strcmp(command, "load") == 0) && (game_get_current()->status == CREATED) && (player == 0)){
                     cb_append(output_buffer,"Waiting on Player 1");
                     cb_write(client_socket_fd, output_buffer);
                 }
+                // Loading the board
                 else if (strcmp(command, "load") == 0){
-
                     game_load_board(game_get_current(), player, arg1);
                     if(player == 1){
                         cb_append(output_buffer, "\nAll Player Boards Loaded\n");
@@ -151,14 +156,17 @@ int handle_client_connect(int player) {
                         game_get_current()->status = PLAYER_0_TURN;
                         server_broadcast(output_buffer);
                     }
-
-                }else if (strcmp(command, "show") == 0){
+                }
+                // Show board to the player
+                else if (strcmp(command, "show") == 0){
                     char_buff *boardBuf = cb_create(2000);
                     repl_print_board(game_get_current(), player, boardBuf);
                     cb_write(client_socket_fd, boardBuf);
 
                     free(boardBuf);
-                } else if (strcmp(command, "say") == 0){
+                }
+                // Make a comment to everyone
+                else if (strcmp(command, "say") == 0){
                     char_buff *sayBuffer = cb_create(2000);
                     cb_append(sayBuffer, "\nPlayer ");
                     cb_append_int(sayBuffer, player);
@@ -170,6 +178,7 @@ int handle_client_connect(int player) {
                     server_broadcast(sayBuffer);
                     free(sayBuffer);
                 }
+                // A command catch all for any mistakes
                 else if (command != NULL) {
                     // create output
                     cb_append(output_buffer, "Command was : ");
@@ -245,6 +254,7 @@ int run_server() {
         int client_socket_fd;
         int player = 0;
 
+        // When Players 0 and 1 sign in, we no longer need to wait for incoming connections.
         while ((client_socket_fd = accept(server_socket_fd,
                                           (struct sockaddr *) &client,
                                           &size_from_connect)) > 0) {

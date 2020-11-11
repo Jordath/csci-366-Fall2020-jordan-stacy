@@ -6,20 +6,22 @@
 #include <stdio.h>
 #include "game.h"
 #include <string.h>
+#include <pthread.h>
 // STEP 10 - Synchronization: the GAME structure will be accessed by both players interacting
 // asynchronously with the server.  Therefore the data must be protected to avoid race conditions.
 // Add the appropriate synchronization needed to ensure a clean battle.
 
-/*
+
 pthread_mutex_t lock;
-pthread_mutex_init(&lock, NULL);
-pthread_mutex_lock(&lock);
-*/
+//pthread_mutex_init(&lock, NULL);
+//pthread_mutex_lock(&lock);
+
+//pthread_mutex_unlock(&lock);
+//pthread_mutex_destroy(&lock);
+
+
 static game * GAME = NULL;
-/*
-pthread_mutex_unlock(&lock);
-pthread_mutex_destroy(&lock);
-*/
+
 void game_init() {
     if (GAME) {
         free(GAME);
@@ -317,3 +319,4 @@ int add_ship_vertical(player_info *player, int x, int y, int length) {
         }
     }
 }
+
