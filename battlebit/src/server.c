@@ -146,7 +146,7 @@ int handle_client_connect(int player) {
 
                     game_load_board(game_get_current(), player, arg1);
                     if(player == 1){
-                        cb_append(output_buffer, "All Player Boards Loaded\n");
+                        cb_append(output_buffer, "\nAll Player Boards Loaded\n");
                         cb_append(output_buffer, "Player 0 Turn");
                         game_get_current()->status = PLAYER_0_TURN;
                         server_broadcast(output_buffer);
@@ -166,7 +166,7 @@ int handle_client_connect(int player) {
                     cb_append(sayBuffer, arg1);
                     cb_append(sayBuffer, " ");
                     cb_append(sayBuffer, arg2);
-                    cb_append(sayBuffer, "\n");
+                    //cb_append(sayBuffer, "\n");
                     server_broadcast(sayBuffer);
                     free(sayBuffer);
                 }
@@ -187,7 +187,8 @@ int handle_client_connect(int player) {
 
 void server_broadcast(char_buff *msg) {
     // send message to all players
-    cb_write(SERVER->server_thread, msg);
+    //cb_print(msg);
+    printf("%s\n",msg->buffer);
     cb_write(SERVER->player_sockets[0], msg);
     cb_write(SERVER->player_sockets[1], msg);
 }
