@@ -16,10 +16,13 @@
 
 
 static game_server *SERVER;
+static pthread_mutex_t *LOCK;
 
 void init_server() {
     if (SERVER == NULL) {
         SERVER = calloc(1, sizeof(struct game_server));
+        LOCK = malloc(sizeof(pthread_mutex_t));
+        pthread_mutex_init(LOCK, NULL);
     } else {
         printf("Server already started");
     }
@@ -57,6 +60,7 @@ int handle_client_connect(int player) {
     cb_write(client_socket_fd, output_buffer);
 
     while((read_size = recv(client_socket_fd, raw_buffer, 2000, 0)) > 0){
+        pthread_mutex_lock(LOCK);
         // reset the buffers
         cb_reset(output_buffer);
         cb_reset(input_buffer);
@@ -171,10 +175,9 @@ int handle_client_connect(int player) {
                     cb_append(sayBuffer, "\nPlayer ");
                     cb_append_int(sayBuffer, player);
                     cb_append(sayBuffer, " says: ");
-                    cb_append(sayBuffer, arg1);
-                    cb_append(sayBuffer, " ");
-                    cb_append(sayBuffer, arg2);
-                    //cb_append(sayBuffer, "\n");
+                    char *sayString = raw_buffer;
+                    sayString += 4; // bring the pointer up to after "say "
+                    cb_append(sayBuffer, sayString);
                     server_broadcast(sayBuffer);
                     free(sayBuffer);
                 }
@@ -190,6 +193,7 @@ int handle_client_connect(int player) {
             cb_reset(output_buffer);
             cb_append(output_buffer, "\nbattleBit (? for help) > ");
             cb_write(client_socket_fd, output_buffer);
+            pthread_mutex_unlock(LOCK);
         }
     }
 }
