@@ -35,7 +35,7 @@ string: Foo
 [ RUN      ] game_fire.hit_fire
 [       OK ] game_fire.hit_fire (0 ms)
 [ RUN      ] game_fire.hit_fire2
-[       OK ] game_fire.hit_fire2 (1 ms)
+[       OK ] game_fire.hit_fire2 (0 ms)
 [ RUN      ] game_fire.miss_fire
 [       OK ] game_fire.miss_fire (0 ms)
 [ RUN      ] game_fire.miss_fire2
@@ -51,7 +51,7 @@ string: Foo
 [       OK ] game_fire.miss_fire2 (0 ms)
 [ RUN      ] game_fire.invalid_fire
 [       OK ] game_fire.invalid_fire (0 ms)
-[----------] 6 tests from game_fire (1 ms total)
+[----------] 6 tests from game_fire (0 ms total)
 
 [----------] 2 tests from add_ship_horizontal
 [ RUN      ] add_ship_horizontal.empty_ship
